@@ -12,6 +12,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import org.w3c.dom.Text;
+
 
 public class MainActivity extends ActionBarActivity {
 
@@ -27,6 +29,24 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        helper = new CourseDBHelper(this);
+        SQLiteDatabase db = helper.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT SUM(credit),SUM(credit*value) FROM course;",null);
+        cursor.moveToFirst();
+
+        int TotalCredit = cursor.getInt(0);
+        double GP = cursor.getDouble(1);
+
+        double GPA = GP/TotalCredit;
+
+        TextView tvGP = (TextView)findViewById(R.id.tvGP);
+        TextView tvCR = (TextView)findViewById(R.id.tvCR);
+        TextView tvGPA = (TextView)findViewById(R.id.tvGPA);
+
+        tvGP.setText(Double.toString(GP));
+        tvCR.setText(Integer.toString(TotalCredit));
+        tvGPA.setText(Double.toString(GPA));
+
 
         // This method is called when this activity is put foreground.
 
@@ -60,6 +80,16 @@ public class MainActivity extends ActionBarActivity {
                 String code = data.getStringExtra("code");
                 int credit = data.getIntExtra("credit", 0);
                 String grade = data.getStringExtra("grade");
+
+
+                helper = new CourseDBHelper(this);
+                SQLiteDatabase db = helper.getWritableDatabase();
+                ContentValues r = new ContentValues();
+                r.put("code",code);
+                r.put("credit",credit);
+                r.put("grade",grade);
+                r.put("value",gradeToValue(grade));
+                long new_id = db.insert("course",null,r);
 
             }
         }
